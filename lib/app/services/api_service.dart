@@ -1,0 +1,63 @@
+import 'dart:convert';
+
+import 'package:coronavirus_rest_api_flutter_course/app/services/endpoint_data.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:coronavirus_rest_api_flutter_course/app/services/api.dart';
+
+class APIService {
+  APIService(this.api);
+  final API api;
+
+  Future<String> getAccessToken() async {
+    final response = await http.post(
+      api.tokenUri(),
+      headers: {'Authorization': 'Basic ${api.apiKey}'},
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final accessToken = data['access_token'];
+      if (accessToken != null) {
+        return accessToken;
+      }
+    }
+    print(
+        'Request ${api.tokenUri()} failed\nResponse: ${response.statusCode} ${response.reasonPhrase}');
+    throw response;
+  }
+
+  Future<EndpointData> getEndpointData({
+    @required String accessToken,
+    @required EndPoint endpoint,
+  }) async {
+    final uri = api.endpointUri(endpoint);
+    final response = await http.get(
+      uri,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body) as List<dynamic>;
+      if (data.isNotEmpty) {
+        final endpointData = data[0] as Map<String, dynamic>;
+        final responseJsonKey = _responseJsonKeys[endpoint];
+        final value = endpointData[responseJsonKey] as int;
+        final dateString = endpointData['date'] as String;
+        final date = DateTime.tryParse(dateString);
+        if (value != null) {
+          return EndpointData(value: value, date: date);
+        }
+      }
+    }
+    print(
+        'Request $uri failed\nResponse: ${response.statusCode} ${response.reasonPhrase}');
+    throw response;
+  }
+
+  static Map<EndPoint, String> _responseJsonKeys = {
+    EndPoint.cases: 'cases',
+    EndPoint.casesSuspected: 'data',
+    EndPoint.casesConfirmed: 'data',
+    EndPoint.deaths: 'data',
+    EndPoint.recovered: 'data',
+  };
+}
