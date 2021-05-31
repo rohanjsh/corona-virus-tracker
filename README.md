@@ -1,4 +1,4 @@
-# coronavirus_rest_api_flutter_course
+# coronavirus_tracker_
 
 A new Flutter project.
 
