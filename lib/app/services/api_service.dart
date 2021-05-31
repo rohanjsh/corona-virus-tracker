@@ -27,8 +27,8 @@ class APIService {
   }
 
   Future<EndpointData> getEndpointData({
-    @required String accessToken,
-    @required EndPoint endpoint,
+    required String? accessToken,
+    required Endpoint endpoint,
   }) async {
     final uri = api.endpointUri(endpoint);
     final response = await http.get(
@@ -39,8 +39,8 @@ class APIService {
       final data = json.decode(response.body) as List<dynamic>;
       if (data.isNotEmpty) {
         final endpointData = data[0] as Map<String, dynamic>;
-        final responseJsonKey = _responseJsonKeys[endpoint];
-        final value = endpointData[responseJsonKey] as int;
+        final responseJsonKey = _responseJsonKeys[endpoint] as String;
+        final value = endpointData[responseJsonKey] as int?;
         final dateString = endpointData['date'] as String;
         final date = DateTime.tryParse(dateString);
         if (value != null) {
@@ -53,11 +53,11 @@ class APIService {
     throw response;
   }
 
-  static Map<EndPoint, String> _responseJsonKeys = {
-    EndPoint.cases: 'cases',
-    EndPoint.casesSuspected: 'data',
-    EndPoint.casesConfirmed: 'data',
-    EndPoint.deaths: 'data',
-    EndPoint.recovered: 'data',
+  static Map<Endpoint, String> _responseJsonKeys = {
+    Endpoint.cases: 'cases',
+    Endpoint.casesSuspected: 'data',
+    Endpoint.casesConfirmed: 'data',
+    Endpoint.deaths: 'data',
+    Endpoint.recovered: 'data',
   };
 }
